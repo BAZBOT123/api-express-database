@@ -1,4 +1,5 @@
 const express = require('express')
+const res = require('express/lib/response')
 
 const booksRouter = express.Router()
 
@@ -76,6 +77,81 @@ booksRouter.get('/:id', (req, res) => {
       console.log(error)
     })
 })
+
+
+// delete /books/10
+booksRouter.delete('/:id', (req, res) => {
+  const deleteBooksQuery = `DELETE from books WHERE id = $1 RETURNING *`
+
+  const deleteValues = [
+    req.params.id //$1 - the book id
+  ]
+
+  db.query(deleteBooksQuery, deleteValues)
+    .then(databaseResult => {
+      console.log(databaseResult)
+      if (databaseResult.rowCount === 0) {
+        res.status(404)
+        res.json({ error: 'book does not exist' })
+      }
+      else {
+        res.json({ book: databaseResult.rows[0] })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500)
+      res.json({ error: 'unexpected error' })
+    })
+})
+
+
+//put /book/:id - update a book
+booksRouter.put('/:id', function (req, res) {
+
+  const updateBookQuery = `
+  UPDATE books SET
+  title  = $1,
+  type = $2,
+  author = $3,
+  topic = $4,
+  publicationdate = $5,
+  pages = $6
+  WHERE id = $7
+  Returning *
+  `
+  const updateValues = [
+    req.body.title, //$1 = title
+    req.body.type, //$2 = type
+    req.body.author, //$3 = author
+    req.body.topic, //$4 = topic
+    req.body.publicationdate, //$5 = publicationdate
+    req.body.pages, //$6 = pages
+    req.params.id, //$7 = bookId
+  ]
+
+  db.query(updateBookQuery, updateValues)
+    .then(databaseResult => {
+      console.log(databaseResult)
+      if (databaseResult.rowCount === 0) {
+        res.status(404)
+        res.json({ error: 'book does not exist' })
+      }
+      else {
+        res.json({ book: databaseResult.rows[0] })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500)
+      res.json({ error: 'unexpected error' })
+    })
+})
+
+
+
+
+
 
 //POST /books - Adds a new book
 booksRouter.post('/', (req, res) => {

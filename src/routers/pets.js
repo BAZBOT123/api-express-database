@@ -159,10 +159,6 @@ petsRouter.patch('/:id', (req, res) => {
 })
 
 
-
-
-
-
 petsRouter.post('/', (req, res) => {
 
     const insertPetsQuery = `
